@@ -1,0 +1,8 @@
+{
+  "name": "jenkins-documentation",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": { "start": "node app.js", "test": "jest" },
+  "dependencies": { "express": "^4.18.0" },
+  "devDependencies": { "jest": "^29.0.0", "supertest": "^6.0.0" }
+}
