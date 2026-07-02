@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   environment {
-    IMAGE = "ishanakhouri/jenkins-documentation:${env.BUILD_NUMBER}"
+    IMAGE = "ishanakhouri/jenkins-documentation:latest"
   }
 
   stages {
@@ -37,7 +37,7 @@ pipeline {
             helm upgrade --install jenkins-documentation-dev \
               ./helm/jenkins-documentation \
               --namespace jenkins-dev \
-              --set image.tag=${BUILD_NUMBER} \
+              --set image.tag=latest \
               --set image.repository=ishanakhouri/jenkins-documentation \
               --wait
           '''
@@ -81,18 +81,18 @@ pipeline {
             helm upgrade --install jenkins-documentation-prod \
               ./helm/jenkins-documentation \
               --namespace jenkins-prod \
-              --set image.tag=${BUILD_NUMBER} \
+              --set image.tag=latest \
               --set image.repository=ishanakhouri/jenkins-documentation \
               --set rollout.enabled=true \
               --wait
-            kubectl argo rollouts --kubeconfig $KUBECONFIG \
-              status jenkins-documentation-prod \
+            kubectl argo rollouts status jenkins-documentation-prod \
               --namespace jenkins-prod \
               --timeout 5m
           '''
         }
       }
     }
+
   }
 
   post {
