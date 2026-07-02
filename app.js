@@ -1,12 +1,13 @@
-const express = require('express');
-const app = express();
+const http = require('http');
+const PORT = process.env.PORT || 3000;
 
-app.get('/', (req, res) => res.send('Hello from Jenkins CD Pipeline!'));
+const server = http.createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+  res.end('Hello from Jenkins CD Pipeline!\n');
+});
 
-// Only listen if the file is run directly (not required/imported by a test framework)
 if (require.main === module) {
-  app.listen(3000, () => console.log('Server running on port 3000'));
+  server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 }
 
-module.exports = app;
-
+module.exports = server;
