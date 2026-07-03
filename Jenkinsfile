@@ -1,12 +1,9 @@
 pipeline {
   agent any
-
   environment {
     IMAGE = "ishanakhouri/jenkins-documentation:latest"
   }
-
   stages {
-
     stage('Trivy Image Scan') {
       when { branch 'main' }
       steps {
@@ -28,7 +25,6 @@ pipeline {
         }
       }
     }
-
     stage('Deploy Dev') {
       when { branch 'main' }
       steps {
@@ -44,7 +40,6 @@ pipeline {
         }
       }
     }
-
     stage('ZAP DAST') {
       when { branch 'main' }
       steps {
@@ -63,7 +58,6 @@ pipeline {
         }
       }
     }
-
     stage('Approve Prod Deploy') {
       when { branch 'main' }
       steps {
@@ -72,7 +66,6 @@ pipeline {
         }
       }
     }
-
     stage('Deploy Prod - Canary') {
       when { branch 'main' }
       steps {
@@ -92,9 +85,14 @@ pipeline {
         }
       }
     }
-
+    stage('Mock Smoke Test') {
+      when { branch 'main' }
+      steps {
+        echo "Running production smoke tests..."
+        sh 'exit 1'
+      }
+    }
   }
-
   post {
     success {
       emailext(
@@ -104,10 +102,14 @@ pipeline {
       )
     }
     failure {
+      echo "Pipeline or smoke tests failed! Forcing Argo Rollouts to abort and rollback..."
+      withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+        sh 'kubectl argo rollouts abort jenkins-documentation-prod -n jenkins-prod || true'
+      }
       emailext(
         to: 'ishan.akhouri@gmail.com',
-        subject: "FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-        body: "Pipeline failed. Build: ${env.BUILD_URL}"
+        subject: "FAILED & ROLLED BACK: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+        body: "Pipeline failed. Argo Rollouts has automatically aborted the canary and reverted traffic. Check build: ${env.BUILD_URL}"
       )
     }
   }
